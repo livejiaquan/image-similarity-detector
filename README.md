@@ -1,50 +1,70 @@
-# 📌 圖片相似度檢測工具使用說明
+# 📌 Image Similarity Detector
 
-## **1. 工具介紹**
-本工具用於 **檢測資料夾中相似的圖片**，並生成報告。
+## **1. Overview**
 
-🔹 **核心技術**：
-- 使用 **ResNet50** 提取 **2048 維特徵向量**。
-- 計算 **Cosine Similarity 相似度矩陣**。
-- 設定閾值篩選 **相似圖片對**。
-- **可選**：跨資料夾比對 or 內部比對。
-- 產出 **報告 + 拼接圖片**。
+**Image Similarity Detector** is a tool designed for detecting similar images in a dataset using deep learning-based feature extraction. It leverages a pre-trained **ResNet50** model to extract features from images and computes their cosine similarity. The tool is useful for tasks such as:
 
-🔹 **應用場景**：
-✅ 找出 **重複圖片**（去重 Deduplication）
-✅ **監控影像**（CCTV 重複畫面偵測）
-✅ **標註前檢查數據集**（確保不標記相同圖片）
-✅ **減少存儲空間**（刪除重複圖片）
+- **Duplicate Image Detection**: Identify and remove duplicate or near-duplicate images.
+- **Dataset Cleaning**: Ensure datasets do not contain redundant images before training.
+- **Surveillance Footage Analysis**: Detect repeated frames in CCTV footage.
+
+The tool supports **cross-folder comparison**, **in-folder duplicate detection**, and outputs similarity reports along with an optional visualization of similar image pairs.
 
 ---
 
-## **2. 使用方式**
+## **2. Features**
 
-### **📌 2.1 設定參數（可在 `main()` 內調整）**
-
-| 參數名稱 | 說明 | 預設值 |
-|----------|---------------------------------|-------|
-| `folder_list` | 要掃描的圖片資料夾列表 | `['CCTVforSora/']` |
-| `threshold` | 相似度閾值（越高越嚴格）| `0.99` |
-| | **說明**：如果是在 **廠區靜態 CCTV 場景**，背景大部分相同，可以設置為 **0.99** 以確保只偵測出極為相似的影像。 |
-| `compare_mode` | 比對模式 (`full` or `sample`) | `full` |
-| `sample_ratio` | 若 `sample` 模式，設定取樣比例 | `0.3` (30%) |
-| `compare_scope` | `all` (全部比對) 或 `inter_folder` (跨資料夾比對) | `all` |
-| `max_pairs_for_collage` | 生成拼接圖時，最多挑選多少組相似對 | `20` |
+- **Feature Extraction**: Uses a **ResNet50** model to extract 2048-dimensional feature vectors.
+- **Similarity Computation**: Cosine similarity is used to measure image similarity.
+- **Threshold-Based Filtering**: Users can define a similarity threshold (default: `0.99`).
+- **Cross-Folder or Same-Folder Comparison**: Users can choose to compare across different directories or only within the same directory.
+- **JSON Report Generation**: Stores results in structured JSON format.
+- **Image Pair Collage Generation**: Visualizes similar image pairs.
+- **Optimized Processing**: Uses batch processing for efficient feature extraction.
 
 ---
 
-### **📌 2.2 執行程式**
-確保 Python 環境已安裝 PyTorch，然後執行：
+## **3. Installation**
+
+### **📌 3.1 Prerequisites**
+Ensure the following dependencies are installed:
+
 ```bash
-python image_similarity_detector.py
+pip install torch torchvision numpy tqdm opencv-python pillow
 ```
 
 ---
 
-## **3. 輸出結果**
+## **4. Usage**
 
-### **📌 3.1 終端機輸出範例**
+### **📌 4.1 Running the Tool**
+The script can be executed with the default settings:
+
+```bash
+python image_similarity_detector.py
+```
+
+To customize parameters, modify the `main()` function inside `image_similarity_detector.py`.
+
+### **📌 4.2 Configuration Parameters**
+Users can adjust the following parameters before execution:
+
+| Parameter        | Description                                          | Default Value |
+|-----------------|------------------------------------------------------|--------------|
+| `folder_list`   | List of folders to scan for images                  | `['CCTVforSora/']` |
+| `threshold`     | Similarity threshold for detecting duplicates       | `0.99` |
+|                 | **Note**: In **static CCTV environments**, where the background remains largely unchanged, a **threshold of `0.99` is recommended** to detect only highly similar images. |
+| `compare_mode`  | Comparison mode: `full` (all images) or `sample` (subset) | `full` |
+| `sample_ratio`  | If using `sample` mode, defines sample proportion  | `0.3` (30%) |
+| `compare_scope` | `all` (compare all images) or `inter_folder` (exclude same-folder comparisons) | `all` |
+| `max_pairs_for_collage` | Maximum number of image pairs to visualize in collage | `20` |
+
+---
+
+## **5. Output Results**
+
+### **📌 5.1 Console Output Example**
+
 ```bash
 Total images found: 1500
 Threshold = 0.99
@@ -56,17 +76,18 @@ Result JSON: results/20250219_123456/report.json
 Done. Output folder: results/20250219_123456
 ```
 
-### **📌 3.2 產出報告結構**
-結果會存到 `results/` 目錄，格式如下：
+### **📌 5.2 Output Directory Structure**
+After execution, results will be saved in a structured format:
+
 ```
 results/
-│── 20250219_123456/  ← (本次運行的輸出)
-│   ├── report.json  ← (包含相似圖片資訊的 JSON)
+│── 20250219_123456/  ← (Current execution output)
+│   ├── report.json  ← (JSON file containing similarity results)
 │   ├── similar_pairs_sample/  
-│   │   ├── random_collage.jpg  ← (隨機挑選相似圖片的拼接圖)
+│   │   ├── random_collage.jpg  ← (Collage of similar image pairs)
 ```
 
-### **📌 3.3 JSON 報告格式範例**
+### **📌 5.3 JSON Report Example**
 ```json
 {
     "timestamp": "20250219_123456",
@@ -93,14 +114,32 @@ results/
     ]
 }
 ```
-這份報告詳細記錄了：
-- **找到的相似圖片對**
-- **它們的相似度分數**
-- **如果要刪除重複圖片，最多能刪除多少**
+This JSON file contains details of all detected similar image pairs, including their paths and similarity scores.
 
 ---
 
-## **4. 總結**
-這個工具使用 **ResNet50 提取圖片特徵**，然後用 **Cosine Similarity** 來比較圖片的相似度，最後生成 **報告 + 拼接圖片**，幫助使用者快速檢查相似圖片。
+## **6. Development and Contribution**
 
-✨ **這樣的說明清楚嗎？如果有任何問題，歡迎詢問！😊**
+### **📌 6.1 Project Structure**
+```
+image_similarity_detector.py  # Main script
+results/                      # Output directory
+README.md                     # Documentation
+```
+
+### **📌 6.2 Future Enhancements**
+- Add support for other feature extraction models (e.g., MobileNet, EfficientNet).
+- Implement GUI for easier usage.
+- Optimize batch processing for large datasets.
+
+---
+
+## **7. Summary**
+✅ Extracts image features using **ResNet50**.
+✅ Computes **cosine similarity** between images.
+✅ Identifies and **visualizes duplicate image pairs**.
+✅ Generates **detailed JSON reports**.
+✅ Supports **cross-folder and same-folder comparisons**.
+
+This tool provides an efficient way to manage large image datasets by identifying and filtering duplicate or highly similar images. For any feature requests or issues, feel free to contribute via GitHub!
+
