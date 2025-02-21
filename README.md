@@ -51,7 +51,7 @@ Users can adjust the following parameters before execution:
 
 | Parameter        | Description                                          | Default Value |
 |-----------------|------------------------------------------------------|--------------|
-| `folder_list`   | List of folders to scan for images                  | `['CCTVforSora/']` |
+| `folder_list`   | List of folders to scan for images                  | `['data/images/']` |
 | `threshold`     | Similarity threshold for detecting duplicates       | `0.99` |
 |                 | **Note**: In **static CCTV environments**, where the background remains largely unchanged, a **threshold of `0.99` is recommended** to detect only highly similar images. |
 | `compare_mode`  | Comparison mode: `full` (all images) or `sample` (subset) | `full` |
@@ -81,17 +81,17 @@ After execution, results will be saved in a structured format:
 
 ```
 results/
-│── 20250219_123456/  ← (Current execution output)
-│   ├── report.json  ← (JSON file containing similarity results)
-│   ├── similar_pairs_sample/  
-│   │   ├── random_collage.jpg  ← (Collage of similar image pairs)
+│— 20250219_123456/  ← (Current execution output)
+│   ├─ report.json  ← (JSON file containing similarity results)
+│   ├─ similar_pairs_sample/  
+│   │   ├─ random_collage.jpg  ← (Collage of similar image pairs)
 ```
 
 ### **📌 5.3 JSON Report Example**
 ```json
 {
     "timestamp": "20250219_123456",
-    "folder_list": ["CCTVforSora"],
+    "folder_list": ["data/images"],
     "total_images_in_folders": 1500,
     "compare_mode": "full",
     "threshold": 0.99,
@@ -101,14 +101,14 @@ results/
     "similar_pairs": [
         {
             "index": 1,
-            "image1": "CCTVforSora/img1.jpg",
-            "image2": "CCTVforSora/img2.jpg",
+            "image1": "data/images/img1.jpg",
+            "image2": "data/images/img2.jpg",
             "similarity_score": 0.9956
         },
         {
             "index": 2,
-            "image1": "CCTVforSora/img3.jpg",
-            "image2": "CCTVforSora/img4.jpg",
+            "image1": "data/images/img3.jpg",
+            "image2": "data/images/img4.jpg",
             "similarity_score": 0.9923
         }
     ]

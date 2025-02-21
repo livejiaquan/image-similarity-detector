@@ -210,8 +210,8 @@ def create_collage_from_pairs(pair_images, pairs_per_row=3):
 def main():
     # ========== 參數設定 ==========
     folder_list = [
-        r"/Users/jiaquan/Desktop/JQ_USIG/CCTVforSora",
-        # r"C:\Users\limjiaquan\Desktop\Datasets\helmet_dataset\JPEGImages"
+        r"/--You Dataset Path--",
+        # r"--You Dataset Path--"
     ]
     threshold = 0.99
     compare_mode = 'full'   # 'full' or 'sample'

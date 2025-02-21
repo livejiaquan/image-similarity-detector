@@ -50,7 +50,7 @@ python image_similarity_detector.py
 
 | 參數名稱        | 描述                                            | 預設值 |
 |---------------|---------------------------------|------|
-| `folder_list` | 需掃描的圖片文件夾列表                    | `['CCTVforSora/']` |
+| `folder_list` | 需掃描的圖片文件夾列表                    | `['data/images/']` |
 | `threshold`   | 相似度閾值，數值越高篩選越嚴格             | `0.99` |
 |               | **說明**：在 **靜態 CCTV 監控場景**（背景基本不變）下，建議設定 **0.99** 來確保只檢測高度相似圖片。 |
 | `compare_mode`| 比對模式：`full`（全數據比對）或 `sample`（抽樣） | `full` |
@@ -91,7 +91,7 @@ results/
 ```json
 {
     "timestamp": "20250219_123456",
-    "folder_list": ["CCTVforSora"],
+    "folder_list": ["data/images/"],
     "total_images_in_folders": 1500,
     "compare_mode": "full",
     "threshold": 0.99,
@@ -101,14 +101,14 @@ results/
     "similar_pairs": [
         {
             "index": 1,
-            "image1": "CCTVforSora/img1.jpg",
-            "image2": "CCTVforSora/img2.jpg",
+            "image1": "data/images/img1.jpg",
+            "image2": "data/images/img2.jpg",
             "similarity_score": 0.9956
         },
         {
             "index": 2,
-            "image1": "CCTVforSora/img3.jpg",
-            "image2": "CCTVforSora/img4.jpg",
+            "image1": "data/images/img3.jpg",
+            "image2": "data/images/img4.jpg",
             "similarity_score": 0.9923
         }
     ]
