@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Report every input root with no readable images as an input issue, so empty or unsupported-only dataset splits cannot silently pass a strict cross-root gate. Preserve comparisons from readable roots.
+- Distinguish zero compared pairs and incomplete no-match scans in HTML instead of suggesting threshold changes for missing input coverage.
+- Add synthetic coverage, CLI exit-code, deterministic issue ordering, and source-immutability regressions. JSON remains schema 1.0 with the existing issue/status fields.
+
 ## 0.2.0 — 2026-10-01
 
 - Replaced the editable script with an installable src-layout package, CLI, and library API.

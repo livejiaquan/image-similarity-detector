@@ -66,7 +66,7 @@ def parser() -> argparse.ArgumentParser:
         help="Exit 1 when matches are found, for dataset CI checks.",
     )
     command.add_argument(
-        "--strict", action="store_true", help="Exit 2 for any unreadable/skipped input."
+        "--strict", action="store_true", help="Exit 2 for unreadable/skipped input or empty roots."
     )
     command.add_argument("--verbose", action="store_true")
     return root

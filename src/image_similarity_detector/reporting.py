@@ -66,9 +66,17 @@ def render_html(result: ScanResult, report_pairs: int = 100) -> str:
             f'<div class="card-foot">{description}</div></article>'
         )
     if not cards:
+        if result.summary["pairs_compared"] == 0:
+            title = "No image pairs were compared."
+            guidance = "Check input issues and provide readable images in the selected scope. "
+        elif result.issues:
+            title = "No matches among readable inputs."
+            guidance = "This scan is incomplete. Resolve input issues and scan again. "
+        else:
+            title = "No matches at this threshold."
+            guidance = "Try another backend or threshold if you expected similar images. "
         cards.append(
-            '<div class="empty-state"><strong>No matches at this threshold.</strong>'
-            "<p>Try another backend or threshold if you expected similar images. "
+            f'<div class="empty-state"><strong>{title}</strong><p>{guidance}'
             "This result does not prove that the dataset is free of contamination.</p></div>"
         )
     groups = []

@@ -111,6 +111,18 @@ def scan(config: ScanConfig, *, encoder: Encoder | None = None) -> ScanResult:
             image.close()
     if not records:
         raise ValueError("No readable images found. Check file formats and permissions.")
+    # Every requested split must contribute readable images. Otherwise an empty
+    # train/test directory could silently pass even a strict cross-root gate.
+    readable_roots = {record.root for record in records}
+    for root in sorted(config.roots, key=lambda root: root.label):
+        if root.label not in readable_roots:
+            issues.append(
+                ScanIssue(
+                    str(root.path.resolve()),
+                    f"No readable images in input '{root.label}'. "
+                    "Check that this directory contains supported, readable image files.",
+                )
+            )
     features = np.stack(vectors)
     LOGGER.info("Comparing %d images in blocks of %d", len(records), config.block_size)
     matches, counts = compare(

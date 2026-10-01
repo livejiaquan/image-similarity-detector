@@ -132,7 +132,7 @@ CI covers core tests on Linux, Windows, and macOS, optional neural architecture,
 
 Work remains **O(N²)**. Feature storage grows with image count; blocks bound similarity working memory, not total dataset size. No approximate index or million-image scalability is claimed.
 
-JPEG, PNG, BMP, GIF, WebP, and TIFF are supported. EXIF orientation is normalized; animations/multipage files use the first frame. Corrupt inputs and symlinks are skipped and reported; `--strict` makes input issues a failed dataset gate.
+JPEG, PNG, BMP, GIF, WebP, and TIFF are supported. EXIF orientation is normalized; animations/multipage files use the first frame. Corrupt inputs and symlinks are skipped and reported. Any input root with no readable images makes the scan partial, including empty folders and folders containing only unsupported files. `--strict` makes these input issues a failed dataset gate; without it, inspect the report status before interpreting zero matches.
 
 Reports contain previews and names; JSON also contains absolute source paths. Share reports and caches deliberately. The public demo uses synthetic data only.
 

@@ -16,7 +16,7 @@ Install with `python -m pip install .`. Use `image-similarity scan` or `python -
 | `--device` | `auto` | `auto`, `cpu`, `cuda`, `mps`; dHash uses CPU |
 | `--cache-dir PATH` | Disabled | Opt-in feature cache |
 | `--fail-on-matches` | Disabled | Exit 1 when matches are found |
-| `--strict` | Disabled | Exit 2 for skipped/unreadable input |
+| `--strict` | Disabled | Exit 2 for skipped/unreadable input or an input root with no readable images |
 | `--verbose` | Disabled | Encoding and comparison progress |
 
 Labels must be unique; paths with spaces should be quoted: `--input "train=./my data/train"`. Roots must exist, must not overlap, and cannot be symlinks. Output/cache inside roots is rejected. Cross-root mode requires at least two roots.
@@ -35,7 +35,9 @@ image-similarity scan --input train=./data/train --input test=./data/test \
 | 2 | Invalid settings, no readable images, execution/report error, or strict input issues |
 | 130 | User interruption |
 
-A partial scan still writes a report when readable images exist. Strict issues take precedence over the match gate. This checks the selected metric/threshold; it does not certify dataset independence.
+Every named input root must contribute at least one readable image for a complete scan. Empty folders, unsupported-only folders, and roots whose images all fail decoding are input issues. An empty test split therefore cannot pass `--scope cross-root --strict`, even if there are zero matches.
+
+A partial scan still writes a report when readable images exist. Valid comparisons and matches are retained. Without `--strict`, input issues do not change the exit code; inspect the partial status and issues. Strict issues take precedence over the match gate. This checks the selected metric/threshold; it does not certify dataset independence.
 
 ## Tuning
 
