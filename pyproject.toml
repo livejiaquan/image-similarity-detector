@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-similarity-detector"
+version = "0.2.0"
+description = "Local image dataset auditing with bounded-memory matching and reviewable reports."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "Lim Jia Quan"}]
+keywords = ["computer-vision", "dataset", "duplicate-images", "data-quality"]
+classifiers = ["Development Status :: 4 - Beta", "Environment :: Console", "Programming Language :: Python :: 3", "Topic :: Scientific/Engineering :: Image Processing"]
+dependencies = ["numpy>=1.24,<3", "Pillow>=10.3,<13"]
+
+[project.optional-dependencies]
+neural = ["torch>=2.2,<3", "torchvision>=0.17,<1"]
+dev = ["pytest>=8,<10", "ruff>=0.11,<1", "build>=1.2,<2"]
+
+[project.scripts]
+image-similarity = "image_similarity_detector.cli:main"
+
+[project.urls]
+Repository = "https://github.com/livejiaquan/image-similarity-detector"
+Issues = "https://github.com/livejiaquan/image-similarity-detector/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+image_similarity_detector = ["assets/*.html", "assets/*.css", "assets/*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
