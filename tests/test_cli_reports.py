@@ -25,7 +25,7 @@ def test_cli_writes_valid_report_and_exit_codes(dataset, tmp_path, capsys):
     assert main(args(dataset, output)) == 0
     files = list(output.glob("*/report.json"))
     assert len(files) == 1
-    report = json.loads(files[0].read_text())
+    report = json.loads(files[0].read_text(encoding="utf-8"))
     assert report["schema_version"] == "1.0"
     assert report["summary"]["exact_pairs"] == 1
     assert files[0].with_suffix(".html").exists()
@@ -38,7 +38,7 @@ def test_strict_mode_still_emits_reviewable_partial_report(dataset, tmp_path):
     (dataset[0] / "broken.jpg").write_bytes(b"broken")
     output = tmp_path / "reports"
     assert main(args(dataset, output) + ["--strict"]) == 2
-    report = json.loads(next(output.glob("*/report.json")).read_text())
+    report = json.loads(next(output.glob("*/report.json")).read_text(encoding="utf-8"))
     assert report["summary"]["status"] == "partial"
 
 
@@ -89,10 +89,10 @@ def test_report_limit_is_visible_and_json_retains_records(dataset, tmp_path):
         )
     )
     directory = write_reports(result, tmp_path / "reports", report_pairs=1)
-    document = (directory / "report.html").read_text()
+    document = (directory / "report.html").read_text(encoding="utf-8")
     assert document.count('<article class="match-card"') == 1
     assert "1 cards · 3 stored pairs · 6 matches found" in document
-    report = json.loads((directory / "report.json").read_text())
+    report = json.loads((directory / "report.json").read_text(encoding="utf-8"))
     assert len(report["matches"]) == 3
     assert report["summary"]["pairs_truncated"] is True
 
