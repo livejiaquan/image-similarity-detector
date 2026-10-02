@@ -1,146 +1,110 @@
-# 📌 圖片相似度檢測工具
+# Image Similarity Detector
 
-## **1. 概述**
+**訓練前先檢查影像資料集：找出重複檔案、審查近似圖片、比對資料集切分。全程在本機處理。**
 
-**圖片相似度檢測工具（Image Similarity Detector）** 是一款基於深度學習的工具，用於檢測數據集中相似的圖片。該工具利用 **ResNet50** 預訓練模型提取圖像特徵，並計算它們的餘弦相似度。適用於以下場景：
+[English](README.md) · [CLI 說明](docs/USAGE.md) · [程式架構](docs/ARCHITECTURE.md) · [報告格式](docs/REPORT_SCHEMA.md)
 
-- **重複圖片檢測**：識別並刪除數據集中的重複或幾乎相同的圖片。
-- **數據清理**：確保數據集中不包含冗餘圖片，提升數據質量。
-- **監控影像分析**：檢測 **CCTV** 監控畫面中的重複場景。
+![本機影像資料集審查報告](docs/assets/report.png)
 
-該工具支持 **跨文件夾比對** 和 **同文件夾內部比對**，並提供相似度報告與可視化圖片。
+## 專案定位
 
----
+影像資料集可能混有重複匯出、重新壓縮的畫面，或出現在 train 與 test 的相關影像。本工具把結果整理成可審查的資料品質報告，協助你決定下一步。
 
-## **2. 功能特點**
+專案起源於內部使用的小型腳本。0.2 版整理為有測試的 Python 套件與 CLI，新增分塊比對、跨資料夾檢查、快取與離線 HTML。目前是 **beta 資料集審查工具**，實際辨識效果須用你的資料與門檻驗證。
 
-- **特徵提取**：使用 **ResNet50** 模型提取 **2048 維度特徵向量**。
-- **相似度計算**：基於 **餘弦相似度（Cosine Similarity）** 測量圖片相似程度。
-- **閾值篩選**：用戶可設置相似度閾值（預設 `0.99`）。
-- **靈活比對範圍**：支持跨文件夾比對，或限制比對範圍至單一文件夾內。
-- **JSON 報告輸出**：生成包含相似圖片詳細資訊的 JSON 報告。
-- **圖片對拼接輸出**：可視化相似圖片對。
-- **高效計算**：採用 **批量處理** 方式，加速特徵提取過程。
+## 功能
 
----
+- SHA-256 完全重複檢查，與視覺相似候選分開標示。
+- 預設 256-bit 感知差異雜湊；可選 ResNet50 特徵。
+- 使用命名資料夾，比對 train／validation／test。
+- 分塊計算，避免配置完整 N × N 相似度矩陣。
+- ResNet50 真正批次推論，支援 CPU、CUDA、Apple MPS。
+- 依檔案內容與編碼器版本區分快取，損壞會重新計算。
+- HTML 內嵌縮圖，支援類型篩選、路徑搜尋，不需網頁伺服器。
+- JSON 有 schema 版本、來源資訊、完整統計與略過原因。
+- 不刪除、移動或修改原始影像。
 
-## **3. 安裝**
+## 安裝與掃描
 
-### **📌 3.1 依賴環境**
-請確保已安裝以下 Python 套件：
-
-```bash
-pip install torch torchvision numpy tqdm opencv-python pillow
-```
-
----
-
-## **4. 使用方法**
-
-### **📌 4.1 執行工具**
-
-使用預設參數運行工具：
-```bash
-python image_similarity_detector.py
-```
-
-如需自定義參數，請修改 `image_similarity_detector.py` 內的 `main()` 函數。
-
-### **📌 4.2 配置參數**
-
-| 參數名稱        | 描述                                            | 預設值 |
-|---------------|---------------------------------|------|
-| `folder_list` | 需掃描的圖片文件夾列表                    | `['data/images/']` |
-| `threshold`   | 相似度閾值，數值越高篩選越嚴格             | `0.99` |
-|               | **說明**：在 **靜態 CCTV 監控場景**（背景基本不變）下，建議設定 **0.99** 來確保只檢測高度相似圖片。 |
-| `compare_mode`| 比對模式：`full`（全數據比對）或 `sample`（抽樣） | `full` |
-| `sample_ratio`| 若使用 `sample` 模式，設定抽樣比例         | `0.3` (30%) |
-| `compare_scope`| `all`（比對所有圖片）或 `inter_folder`（排除同文件夾內比對） | `all` |
-| `max_pairs_for_collage` | 生成相似圖片拼接時的最大圖片對數 | `20` |
-
----
-
-## **5. 輸出結果**
-
-### **📌 5.1 終端輸出範例**
+需要 Python 3.10 以上。CI 目標涵蓋 Linux、Windows、macOS。
 
 ```bash
-Total images found: 1500
-Threshold = 0.99
-Found 235 pairs of images that meet the similarity threshold.
-Number of unique groups: 1200
-Photos that can be removed if only keeping 1 from each group: 300
-Collage saved: results/20250219_123456/similar_pairs_sample/random_collage.jpg
-Result JSON: results/20250219_123456/report.json
-Done. Output folder: results/20250219_123456
+git clone https://github.com/livejiaquan/image-similarity-detector.git
+cd image-similarity-detector
+python -m venv .venv
+source .venv/bin/activate
+# Windows PowerShell：.venv\Scripts\Activate.ps1
+python -m pip install .
+image-similarity scan --input images=./dataset/images --output ./results
 ```
 
-### **📌 5.2 輸出目錄結構**
+每次掃描建立獨立結果目錄，含 `report.html` 與 `report.json`。直接用瀏覽器開啟 HTML 即可。預設模式僅需 NumPy 與 Pillow，安裝後可離線使用。
 
-執行後，結果將存儲在 `results/` 目錄下：
-```
-results/
-│── 20250219_123456/  ← (本次運行輸出)
-│   ├── report.json  ← (包含相似圖片數據的 JSON 報告)
-│   ├── similar_pairs_sample/  
-│   │   ├── random_collage.jpg  ← (相似圖片對的拼接圖)
-```
+### 檢查資料集切分
 
-### **📌 5.3 JSON 報告範例**
-
-```json
-{
-    "timestamp": "20250219_123456",
-    "folder_list": ["data/images/"],
-    "total_images_in_folders": 1500,
-    "compare_mode": "full",
-    "threshold": 0.99,
-    "number_of_similar_pairs": 235,
-    "number_of_unique_groups": 1200,
-    "photos_to_remove": 300,
-    "similar_pairs": [
-        {
-            "index": 1,
-            "image1": "data/images/img1.jpg",
-            "image2": "data/images/img2.jpg",
-            "similarity_score": 0.9956
-        },
-        {
-            "index": 2,
-            "image1": "data/images/img3.jpg",
-            "image2": "data/images/img4.jpg",
-            "similarity_score": 0.9923
-        }
-    ]
-}
+```bash
+image-similarity scan \
+  --input train=./dataset/train \
+  --input test=./dataset/test \
+  --scope cross-root \
+  --cache-dir ./.image-similarity-cache \
+  --output ./results
 ```
 
-該 JSON 文件詳細記錄了所有被檢測出的相似圖片對，包括圖片路徑與相似度分數。
+輸入名稱需唯一、資料夾不得重疊；輸出與快取放在輸入資料夾外。
 
----
+### 試用合成示範
 
-## **6. 開發與貢獻**
-
-### **📌 6.1 項目結構**
-```
-image_similarity_detector.py  # 主程式
-results/                      # 輸出結果目錄
-README.md                     # 文件說明
+```bash
+python examples/make_demo.py --output demo-data
+image-similarity scan --input train=demo-data/train --input test=demo-data/test
 ```
 
-### **📌 6.2 未來改進方向**
-- 支持其他特徵提取模型（如 MobileNet、EfficientNet）。
-- 增加 **GUI 圖形化界面**，提升易用性。
-- 優化 **大數據集** 處理能力，提高運行效率。
+示範是程式生成的插圖、完全相同副本與 JPEG 變體，不含公司影像。預設得到 8 張影像、2 對完全重複、4 對近似候選。這是流程驗證，不是實際資料集準確率。也可下載[示範 HTML](docs/demo/report.html)到本機開啟。
 
----
+### ResNet50
 
-## **7. 總結**
-✅ 使用 **ResNet50** 提取圖片特徵。
-✅ 基於 **餘弦相似度** 計算圖片相似度。
-✅ 檢測並 **可視化相似圖片對**。
-✅ 生成 **詳細 JSON 報告**。
-✅ 支持 **跨文件夾及同文件夾內比對**。
+```bash
+python -m pip install ".[neural]"
+image-similarity scan --input images=./dataset/images \
+  --backend resnet50 --threshold 0.99 --batch-size 32 --device auto
+```
 
-此工具提供了一種高效的方式來管理大型圖片數據集，通過識別並過濾重複或高度相似的圖片，確保數據集的高質量。如果有任何功能請求或問題，請通過 GitHub 進行反饋與貢獻！
+首次需下載 ImageNet `IMAGENET1K_V2` 權重。CUDA 環境請依 [PyTorch 官方說明](https://pytorch.org/get-started/locally/)安裝相容套件。
 
+## 解讀報告
+
+| 標記 | 意義 |
+| --- | --- |
+| Exact | SHA-256 相同 |
+| Near | 位元組不同，但視覺分數達門檻，需人工確認 |
+| Cross-root | 來自不同命名輸入，需確認切分與來源 |
+| Partial | 有無法讀取或略過的輸入，詳情列在報告 |
+
+dHash 分數是 `1 − 不同比特數 / 256`，ResNet50 是餘弦相似度。分數不是信心機率，兩種門檻不可互換。dHash 可能忽略顏色與局部細節，低資訊圖片會碰撞；ResNet50 可能把相同主題的不同照片視為相似。
+
+A 像 B、B 像 C，不代表 A 與 C 可以互相取代。因此僅對完全相同檔案分組，不推論「可以安全刪除幾張」。跨集合相似也不能直接斷言資料洩漏。
+
+所有符合範圍的圖片對都會比較。預設 JSON 保留前 10,000 對匹配，HTML 顯示前 100 對。總數、截斷與顯示限制都有標示；固定分塊順序並非最高分排名。
+
+## 限制與資料處理
+
+分塊降低相似度矩陣記憶體需求，計算量仍是 **O(N²)**。特徵矩陣隨影像數線性增長；目前沒有近似索引，也不宣稱支援百萬張影像。
+
+支援 JPEG、PNG、BMP、GIF、WebP、TIFF。EXIF 方向正規化；動畫與多頁只取第一幀。壞圖與符號連結會略過並記錄，使用 `--strict` 可讓它們造成非零退出碼。
+
+報告含縮圖與檔名，JSON 另含絕對路徑。分享前請確認對象；快取及結果預設不進 Git。公開示範僅用合成資料。
+
+## 開發
+
+```bash
+python -m pip install -e ".[dev]"
+ruff check src tests examples
+ruff format --check src tests examples
+python -m pytest
+python -m build
+```
+
+程式依 discovery、features、cache、matching、pipeline、reporting 分工。CI 包含核心測試、神經網路架構檢查及 wheel 安裝驗證。已執行檢查見 [VERIFICATION.md](docs/VERIFICATION.md)。
+
+[參與貢獻](CONTRIBUTING.md) · [版本變更](CHANGELOG.md) · [MIT](LICENSE)

@@ -1,145 +1,140 @@
-# 📌 Image Similarity Detector
+# Image Similarity Detector
 
-## **1. Overview**
+**Inspect image datasets before training. Find duplicate files, review similar images, and check matches across dataset splits — locally.**
 
-**Image Similarity Detector** is a tool designed for detecting similar images in a dataset using deep learning-based feature extraction. It leverages a pre-trained **ResNet50** model to extract features from images and computes their cosine similarity. The tool is useful for tasks such as:
+[![CI](https://github.com/livejiaquan/image-similarity-detector/actions/workflows/ci.yml/badge.svg)](https://github.com/livejiaquan/image-similarity-detector/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB)](https://www.python.org/)
+[![MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-- **Duplicate Image Detection**: Identify and remove duplicate or near-duplicate images.
-- **Dataset Cleaning**: Ensure datasets do not contain redundant images before training.
-- **Surveillance Footage Analysis**: Detect repeated frames in CCTV footage.
+[繁體中文](README-zh-TW.md) · [CLI reference](docs/USAGE.md) · [Architecture](docs/ARCHITECTURE.md) · [Report format](docs/REPORT_SCHEMA.md)
 
-The tool supports **cross-folder comparison**, **in-folder duplicate detection**, and outputs similarity reports along with an optional visualization of similar image pairs.
+![Offline dataset audit report](docs/assets/report.png)
 
----
+## Why this tool
 
-## **2. Features**
+Repeated exports, recompressed frames, and related images spread across train and test folders can complicate dataset evaluation. This tool produces a reviewable audit: exact duplicates, visual similarity candidates, cross-root matches, and input issues.
 
-- **Feature Extraction**: Uses a **ResNet50** model to extract 2048-dimensional feature vectors.
-- **Similarity Computation**: Cosine similarity is used to measure image similarity.
-- **Threshold-Based Filtering**: Users can define a similarity threshold (default: `0.99`).
-- **Cross-Folder or Same-Folder Comparison**: Users can choose to compare across different directories or only within the same directory.
-- **JSON Report Generation**: Stores results in structured JSON format.
-- **Image Pair Collage Generation**: Visualizes similar image pairs.
-- **Optimized Processing**: Uses batch processing for efficient feature extraction.
+The project started as an internal image-analysis script. Version 0.2 turns that workflow into a tested Python package and CLI, with block-based comparison and an offline HTML report. It is a **beta dataset auditing tool**; detection quality depends on your images, backend, and threshold.
 
----
+## Features
 
-## **3. Installation**
+- SHA-256 duplicate detection, separated from visual similarity.
+- Lightweight 256-bit difference hash by default; optional ImageNet ResNet50 features.
+- Named input roots for train / validation / test comparison.
+- Block comparison without allocating the full N × N similarity matrix.
+- Batched neural inference on CPU, CUDA, or Apple MPS.
+- Opt-in feature cache keyed by file content and encoder configuration.
+- Self-contained HTML with previews, match filters, and path search.
+- Versioned JSON with coverage, provenance, complete counts, and skipped-file reasons.
+- Read-only source handling: no deletion, movement, or automatic cleanup.
 
-### **📌 3.1 Prerequisites**
-Ensure the following dependencies are installed:
+## Install
 
-```bash
-pip install torch torchvision numpy tqdm opencv-python pillow
-```
-
----
-
-## **4. Usage**
-
-### **📌 4.1 Running the Tool**
-The script can be executed with the default settings:
+Python 3.10+. Linux, Windows, and macOS are CI targets.
 
 ```bash
-python image_similarity_detector.py
+git clone https://github.com/livejiaquan/image-similarity-detector.git
+cd image-similarity-detector
+python -m venv .venv
+source .venv/bin/activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install .
 ```
 
-To customize parameters, modify the `main()` function inside `image_similarity_detector.py`.
+The default backend needs only NumPy and Pillow. Once installed, scanning and viewing reports need no network or API key.
 
-### **📌 4.2 Configuration Parameters**
-Users can adjust the following parameters before execution:
-
-| Parameter        | Description                                          | Default Value |
-|-----------------|------------------------------------------------------|--------------|
-| `folder_list`   | List of folders to scan for images                  | `['data/images/']` |
-| `threshold`     | Similarity threshold for detecting duplicates       | `0.99` |
-|                 | **Note**: In **static CCTV environments**, where the background remains largely unchanged, a **threshold of `0.99` is recommended** to detect only highly similar images. |
-| `compare_mode`  | Comparison mode: `full` (all images) or `sample` (subset) | `full` |
-| `sample_ratio`  | If using `sample` mode, defines sample proportion  | `0.3` (30%) |
-| `compare_scope` | `all` (compare all images) or `inter_folder` (exclude same-folder comparisons) | `all` |
-| `max_pairs_for_collage` | Maximum number of image pairs to visualize in collage | `20` |
-
----
-
-## **5. Output Results**
-
-### **📌 5.1 Console Output Example**
+## First scan
 
 ```bash
-Total images found: 1500
-Threshold = 0.99
-Found 235 pairs of images that meet the similarity threshold.
-Number of unique groups: 1200
-Photos that can be removed if only keeping 1 from each group: 300
-Collage saved: results/20250219_123456/similar_pairs_sample/random_collage.jpg
-Result JSON: results/20250219_123456/report.json
-Done. Output folder: results/20250219_123456
+image-similarity scan --input images=./dataset/images --output ./results
 ```
 
-### **📌 5.2 Output Directory Structure**
-After execution, results will be saved in a structured format:
+Each scan creates a unique directory with `report.html` and `report.json`. Open the HTML directly in your browser; no server is required.
 
-```
-results/
-│— 20250219_123456/  ← (Current execution output)
-│   ├─ report.json  ← (JSON file containing similarity results)
-│   ├─ similar_pairs_sample/  
-│   │   ├─ random_collage.jpg  ← (Collage of similar image pairs)
-```
+To check dataset splits:
 
-### **📌 5.3 JSON Report Example**
-```json
-{
-    "timestamp": "20250219_123456",
-    "folder_list": ["data/images"],
-    "total_images_in_folders": 1500,
-    "compare_mode": "full",
-    "threshold": 0.99,
-    "number_of_similar_pairs": 235,
-    "number_of_unique_groups": 1200,
-    "photos_to_remove": 300,
-    "similar_pairs": [
-        {
-            "index": 1,
-            "image1": "data/images/img1.jpg",
-            "image2": "data/images/img2.jpg",
-            "similarity_score": 0.9956
-        },
-        {
-            "index": 2,
-            "image1": "data/images/img3.jpg",
-            "image2": "data/images/img4.jpg",
-            "similarity_score": 0.9923
-        }
-    ]
-}
-```
-This JSON file contains details of all detected similar image pairs, including their paths and similarity scores.
-
----
-
-## **6. Development and Contribution**
-
-### **📌 6.1 Project Structure**
-```
-image_similarity_detector.py  # Main script
-results/                      # Output directory
-README.md                     # Documentation
+```bash
+image-similarity scan \
+  --input train=./dataset/train \
+  --input test=./dataset/test \
+  --scope cross-root \
+  --cache-dir ./.image-similarity-cache \
+  --output ./results
 ```
 
-### **📌 6.2 Future Enhancements**
-- Add support for other feature extraction models (e.g., MobileNet, EfficientNet).
-- Implement GUI for easier usage.
-- Optimize batch processing for large datasets.
+Input labels must be unique and roots must not overlap. Output and cache locations must be outside input roots.
 
----
+## Reproducible demo
 
-## **7. Summary**
-✅ Extracts image features using **ResNet50**.
-✅ Computes **cosine similarity** between images.
-✅ Identifies and **visualizes duplicate image pairs**.
-✅ Generates **detailed JSON reports**.
-✅ Supports **cross-folder and same-folder comparisons**.
+The demo uses synthetic illustrations, exact copies, and JPEG variants. It contains no company images.
 
-This tool provides an efficient way to manage large image datasets by identifying and filtering duplicate or highly similar images. For any feature requests or issues, feel free to contribute via GitHub!
+```bash
+python examples/make_demo.py --output demo-data
+image-similarity scan --input train=demo-data/train --input test=demo-data/test
+```
+
+Default settings produce 8 scanned images, 2 exact pairs, and 4 near-match pairs. These counts demonstrate the workflow, not accuracy on real datasets. Download the included [sample report](docs/demo/report.html) and open it locally.
+
+## Optional ResNet50
+
+```bash
+python -m pip install ".[neural]"
+image-similarity scan --input images=./dataset/images \
+  --backend resnet50 --threshold 0.99 --batch-size 32 --device auto
+```
+
+First use downloads torchvision's ImageNet `IMAGENET1K_V2` weights; later runs use the local model cache. For CUDA-specific wheels, follow the [official PyTorch installation instructions](https://pytorch.org/get-started/locally/).
+
+| Backend | Score | Starting use | Main limitation |
+| --- | --- | --- | --- |
+| `dhash` | 1 − differing bits / 256 | Copies and mild recompression | Color, small details, crops, and low-information images can collide or be missed |
+| `resnet50` | Cosine similarity, 2048 dimensions | Broader visual similarity | Distinct images of the same subject can score highly |
+
+Scores from the two backends are not interchangeable or confidence probabilities. Calibrate with representative positive and negative pairs.
+
+## Interpreting results
+
+**Exact** means equal SHA-256 digests. **Near** means different bytes with visual similarity above the threshold. **Cross-root** means images came from distinct named inputs.
+
+Similarity is not transitive: A resembling B and B resembling C does not make A and C interchangeable. Only byte-identical files are grouped; the report gives no “safe to delete” count. Cross-root candidates warrant provenance checks and do not by themselves prove data leakage.
+
+All eligible pairs are compared. JSON retains at most 10,000 matches by default; HTML shows at most 100 retained pairs. Complete totals, truncation, partial scans, and limits are explicit. Retention follows deterministic block order, not a top-score ranking.
+
+## Engineering
+
+```text
+src/image_similarity_detector/
+  models.py       Typed configuration and result schema
+  discovery.py    Stable traversal and streaming SHA-256
+  features.py     dHash and batched ResNet50 encoders
+  cache.py        Content-addressed feature cache
+  matching.py     Block comparison and exact-only grouping
+  pipeline.py     Scan orchestration and issue accounting
+  reporting.py    Portable HTML and JSON
+  cli.py          Options, validation, and exit codes
+  assets/         Report template, styles, and interaction
+tests/            Matching, pipeline, cache, CLI, and report regressions
+examples/         Synthetic demo generator
+docs/             Usage, architecture, schema, and verification
+```
+
+```bash
+python -m pip install -e ".[dev]"
+ruff check src tests examples
+ruff format --check src tests examples
+python -m pytest
+python -m build
+```
+
+CI covers core tests on Linux, Windows, and macOS, optional neural architecture, and built-wheel smoke tests. See [verification](docs/VERIFICATION.md) for executed checks and limits.
+
+## Limits and privacy
+
+Work remains **O(N²)**. Feature storage grows with image count; blocks bound similarity working memory, not total dataset size. No approximate index or million-image scalability is claimed.
+
+JPEG, PNG, BMP, GIF, WebP, and TIFF are supported. EXIF orientation is normalized; animations/multipage files use the first frame. Corrupt inputs and symlinks are skipped and reported; `--strict` makes input issues a failed dataset gate.
+
+Reports contain previews and names; JSON also contains absolute source paths. Share reports and caches deliberately. The public demo uses synthetic data only.
+
+[Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [MIT license](LICENSE)
 

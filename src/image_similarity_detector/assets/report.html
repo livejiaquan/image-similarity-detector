@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'sha256-$script_hash'; base-uri 'none'; form-action 'none'">
+<title>Dataset audit · Image Similarity Detector</title>
+<style>$css</style>
+</head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="#overview"><span class="brand-icon">◈</span> Image Similarity<span class="brand-sub">DETECTOR / $version</span></a>
+  <div class="sidebar-label">DATASET WORKSPACE</div>
+  <nav aria-label="Report sections">
+    <a href="#overview">◫ <span>Overview</span></a>
+    <a href="#review">▧ <span>Match review</span></a>
+    <a href="#groups">▦ <span>Exact groups</span></a>
+    <a href="#scan-details">≡ <span>Scan details</span></a>
+  </nav>
+  <div class="sidebar-bottom"><span class="local-dot"></span> Processed on your machine<p>No cloud upload · Read-only scan</p></div>
+</aside>
+<main>
+<header class="topbar"><span>DATA QUALITY / IMAGE AUDIT</span><span class="run-status $status_class">$status</span></header>
+<section id="overview">
+  <div class="eyebrow">LOCAL DATASET AUDIT</div>
+  <div class="title-row"><div><h1>Know what’s in your dataset.</h1><p class="subtitle">Review duplicate and similar images before your next training run.</p></div><span class="date">$date</span></div>
+  <div class="stats">
+    <div class="stat"><span>IMAGES SCANNED</span><strong>$images</strong><small>$backend · $metric</small></div>
+    <div class="stat"><span>EXACT DUPLICATE PAIRS</span><strong>$exact</strong><small>Identical SHA-256 digests</small></div>
+    <div class="stat"><span>NEAR-MATCH PAIRS</span><strong>$near</strong><small>Require visual review</small></div>
+    <div class="stat"><span>CROSS-ROOT PAIRS</span><strong>$cross</strong><small>Check split provenance</small></div>
+  </div>
+  <div class="notice"><strong>Review first. Keep control of your files.</strong><p>Similarity scores are not probabilities. This audit never deletes or changes source images. A near match alone is not proof of a duplicate or data leakage.</p></div>
+</section>
+<section id="review">
+  <div class="section-heading"><div><h2>Match review</h2><p>$shown cards · $stored stored pairs · $total matches found</p></div><span class="threshold">Threshold ≥ $threshold</span></div>
+  <div class="toolbar"><div class="filters" role="group" aria-label="Filter matches">
+    <button type="button" class="active" data-filter="all" aria-pressed="true">All matches</button>
+    <button type="button" data-filter="exact" aria-pressed="false">Exact</button>
+    <button type="button" data-filter="near" aria-pressed="false">Near</button>
+    <button type="button" data-filter="cross" aria-pressed="false">Cross-root</button>
+  </div><label class="search-label"><span class="sr-only">Search displayed image paths</span><input id="search" type="search" placeholder="Search image paths…" autocomplete="off"></label></div>
+  <p class="review-note">Cards show the first retained matches in deterministic block order. Filters apply to these cards. Use report.json for all retained records.</p>
+  <div id="cards" class="cards">$cards</div>
+  <p id="filter-empty" class="empty-state" hidden>No displayed matches fit these filters.</p>
+  <p id="visible-count" aria-live="polite" class="review-note"></p>
+</section>
+<section id="groups" class="details-section"><h2>Byte-identical groups</h2><p>Only SHA-256-identical files are grouped. Near matches are never chained into deletion groups.</p><ul class="detail-list">$groups</ul></section>
+<section id="scan-details" class="details-section">
+  <h2>Scan details</h2>
+  <dl class="scan-grid"><div><dt>Backend</dt><dd>$backend / $metric</dd></div><div><dt>Scope</dt><dd>$scope</dd></div><div><dt>Compared pairs</dt><dd>$compared</dd></div><div><dt>Scan time</dt><dd>$duration s</dd></div><div><dt>Feature cache hits</dt><dd>$cache</dd></div><div><dt>Stored pairs truncated</dt><dd>$truncated</dd></div></dl>
+  <h3>Input labels</h3><ul class="detail-list">$inputs</ul>
+  <h3>Interpretation</h3><ul class="detail-list">$warnings</ul>
+  <h3>Input issues · $issue_count</h3><p>$issue_note</p><ul class="detail-list">$issues</ul>
+</section>
+<footer>Image Similarity Detector · Local image dataset auditing<br>Reports contain image previews and file names. Share them only with the intended audience.</footer>
+</main>
+<script>$js</script>
+</body>
+</html>
